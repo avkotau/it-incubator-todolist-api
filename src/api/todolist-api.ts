@@ -14,26 +14,6 @@ type TodolistType = {
     order: number
 }
 
-// type ItemTodolistType = {
-//     item: TodolistType
-// }
-//
-// type CreateTodolistType = {
-//     resultCode: number
-//     messages: []
-//     data: ItemTodolistType
-// }
-//
-// type DeleteTodolistType = {
-//     resultCode: number
-//     messages: []
-//     data: ItemTodolistType
-// }
-//
-// type PutTodolistType = {
-//     title: string
-// }
-
 type ResponseType<T = {}> = {
     resultCode: number
     messages: string[]
