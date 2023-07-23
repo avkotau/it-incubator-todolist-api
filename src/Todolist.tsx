@@ -5,7 +5,8 @@ import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
 import { Delete } from '@mui/icons-material';
 import { Task } from './Task'
-import { FilterValuesType } from './App';
+import { FilterValuesType } from "./state/todolists-reducer";
+
 
 export type TaskType = {
     id: string
@@ -29,6 +30,8 @@ type PropsType = {
 
 export const Todolist = React.memo(function (props: PropsType) {
     console.log('Todolist called')
+
+
 
     const addTask = useCallback((title: string) => {
         props.addTask(title, props.id)

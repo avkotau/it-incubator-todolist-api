@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+// @ts-ignore
 import { todolistAPI } from "../api/todolist-api";
 
 export default {
@@ -12,6 +13,7 @@ export const GetTodolists = () => {
         // здесь мы будем делать запрос и ответ закидывать в стейт.
         // который в виде строки будем отображать в div-ке
         todolistAPI.getTodolists()
+            // @ts-ignore
             .then((res) => {
                 setState(res.data)
             })
@@ -24,6 +26,7 @@ export const CreateTodolist = () => {
     useEffect(() => {
         const title = 'React'
         todolistAPI.createTodolist(title)
+            // @ts-ignore
             .then((res) => {
                 setState(res.data)
             })
@@ -37,6 +40,7 @@ export const DeleteTodolist = () => {
     useEffect(() => {
         const todolistId = '1056cb3d-29aa-4673-84ba-67a35efc54b4'
         todolistAPI.deleteTodolist(todolistId)
+            // @ts-ignore
             .then((res) => {
 
                 setState(res.data)
@@ -52,6 +56,7 @@ export const UpdateTodolistTitle = () => {
         const todolistId = '1221d8b1-7abe-444b-909c-bdfa5c4749f7'
         const title = 'Redux'
         todolistAPI.updateTodolist(todolistId, title)
+            // @ts-ignore
             .then((res) => {
                 setState(res.data)
             })
