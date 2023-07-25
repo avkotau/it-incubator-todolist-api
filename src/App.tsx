@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect } from 'react'
 import './App.css';
+import LinearProgress from '@mui/material/LinearProgress';
 
 import { Todolist } from './Todolist';
 import { AddItemForm } from './AddItemForm';
@@ -37,6 +38,8 @@ function App() {
 
     const todolists = useSelector<AppRootStateType, Array<TodolistDomainType>>(state => state.todolists)
     const tasks = useSelector<AppRootStateType, TasksStateType>(state => state.tasks)
+
+    const status = useSelector<any>(state => state.app.status)
     const dispatch = useAppDispatch();
 
     useEffect(() => {
@@ -75,7 +78,7 @@ function App() {
     const addTodolist = useCallback((title: string) => {
         dispatch(createTodolistTC(title))
     }, []);
-
+    console.log('status', status)
     return (
         <div className="App">
             <AppBar position="static">
@@ -88,6 +91,7 @@ function App() {
                     </Typography>
                     <Button color="inherit">Login</Button>
                 </Toolbar>
+                {status === 'loading' && <LinearProgress/>}
             </AppBar>
             <Container fixed>
                 <Grid container style={{padding: '20px'}}>
