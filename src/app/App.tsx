@@ -1,9 +1,8 @@
 import React, { useCallback, useEffect } from 'react'
 import './App.css';
-import LinearProgress from '@mui/material/LinearProgress';
 
-import { Todolist } from './Todolist';
-import { AddItemForm } from './AddItemForm';
+import { Todolist } from '../Todolist';
+import { AddItemForm } from '../components/AddItemForm/AddItemForm';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
@@ -13,18 +12,21 @@ import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import { Menu } from '@mui/icons-material';
+import LinearProgress from '@mui/material/LinearProgress';
+
 import {
     changeTodolistFilterAC, createTodolistTC, fetchTodolistsTC, FilterValuesType,
     removeTodolistTC, TodolistDomainType, updateTodolistTC
-} from './state/todolists-reducer';
+} from '../state/todolists-reducer';
 import {
     createTaskTC,
     deleteTaskTC,
     updateTaskStatusTC, updateTaskTitleTC
-} from './state/tasks-reducer';
+} from '../state/tasks-reducer';
 import {useSelector } from 'react-redux';
-import { AppRootStateType, useAppDispatch } from './state/store';
-import { TaskStatuses, TaskType } from "./api/todolist-api";
+import { AppRootStateType, useAppDispatch } from '../state/store';
+import { TaskStatuses, TaskType } from "../api/todolist-api";
+import { ErrorSnackbar } from "../components/ErrorSnackbar/ErrorSnackbar";
 
 
 
@@ -35,6 +37,7 @@ export type TasksStateType = {
 
 
 function App() {
+
 
     const todolists = useSelector<AppRootStateType, Array<TodolistDomainType>>(state => state.todolists)
     const tasks = useSelector<AppRootStateType, TasksStateType>(state => state.tasks)
@@ -78,9 +81,10 @@ function App() {
     const addTodolist = useCallback((title: string) => {
         dispatch(createTodolistTC(title))
     }, []);
-    console.log('status', status)
+
     return (
         <div className="App">
+            <ErrorSnackbar/>
             <AppBar position="static">
                 <Toolbar>
                     <IconButton edge="start" color="inherit" aria-label="menu">
@@ -91,8 +95,8 @@ function App() {
                     </Typography>
                     <Button color="inherit">Login</Button>
                 </Toolbar>
-                {status === 'loading' && <LinearProgress/>}
             </AppBar>
+            {status === 'loading' && <LinearProgress/>}
             <Container fixed>
                 <Grid container style={{padding: '20px'}}>
                     <AddItemForm addItem={addTodolist}/>

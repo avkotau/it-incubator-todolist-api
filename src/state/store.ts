@@ -3,7 +3,7 @@ import { TodolistsActionsType, todolistsReducer } from './todolists-reducer';
 import { applyMiddleware, combineReducers, legacy_createStore as createStore } from 'redux';
 import thunk, { ThunkDispatch } from "redux-thunk";
 import { useDispatch } from "react-redux";
-import { appReducer, AppReducerActionsType } from "./app-reducer";
+import { appReducer, AppReducerActionsType } from "../app/app-reducer";
 
 // объединяя reducer-ы с помощью combineReducers,
 // мы задаём структуру нашего единственного объекта-состояния
