@@ -2,9 +2,9 @@
 import { AddTodolistActionType, RemoveTodolistActionType, SetTodolistsActionType } from './todolists-reducer';
 import { TasksStateType } from '../app/App';
 import { Dispatch } from "redux";
-import { TaskStatuses, TaskType, todolistsAPI, UpdateTaskModelType } from "../api/todolist-api";
+import { Result_code, TaskStatuses, TaskType, todolistsAPI, UpdateTaskModelType } from "../api/todolist-api";
 import { AppRootStateType } from "./store";
-import { setAppStatusAC } from "../app/app-reducer";
+import { setAppErrorAC, setAppStatusAC } from "../app/app-reducer";
 
 export type RemoveTaskActionType = {
     type: 'REMOVE-TASK',
@@ -150,6 +150,10 @@ export const updateTaskTitleTC = (todolistId: string, taskId: string, title: str
         .then(res => {
             dispatch(changeTaskTitleAC(todolistId, taskId, title))
         })
+        .catch(e => {
+            dispatch(setAppErrorAC(e.message))
+            dispatch(setAppStatusAC('failed'))
+        })
 }
 
 export const changeTaskStatusAC = (taskId: string, status: TaskStatuses, todolistId: string): ChangeTaskStatusActionType => {
@@ -176,18 +180,41 @@ export const updateTaskStatusTC = (todolistId: string, taskId: string, status: T
             dispatch(changeTaskStatusAC(taskId, status, todolistId))
             dispatch(setAppStatusAC('succeeded'))
         })
+        .catch(e => {
+            dispatch(setAppErrorAC(e.message))
+            dispatch(setAppStatusAC('failed'))
+        })
 }
 
 export const addTaskAC = (task: TaskType): AddTaskActionType => {
     return {type: 'ADD-TASK', task}
 }
+
+
 export const createTaskTC = (todolistId: string, title: string) => (dispatch: Dispatch) => {
 
     dispatch(setAppStatusAC('loading'))
+
     todolistsAPI.createTask(todolistId, title)
         .then(res => {
-            dispatch(addTaskAC(res.data.data.item))
-            dispatch(setAppStatusAC('succeeded'))
+            if (res.data.resultCode === Result_code.SUCCESS) {
+                dispatch(addTaskAC(res.data.data.item))
+                dispatch(setAppStatusAC('succeeded'))
+            } else {
+                //показываем первую ошибку. При ее исправлении показываем следующую
+                const error = res.data.messages[0]
+                if (error) {
+                    dispatch(setAppErrorAC(error))
+                } else {
+
+                    dispatch(setAppErrorAC('Some error'))
+                }
+                dispatch(setAppStatusAC('failed'))
+            }
+        })
+        .catch(e => {
+            dispatch(setAppErrorAC(e.message))
+            dispatch(setAppStatusAC('failed'))
         })
 }
 
