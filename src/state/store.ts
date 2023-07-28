@@ -5,30 +5,30 @@ import thunk, { ThunkDispatch } from "redux-thunk";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import { appReducer, AppReducerActionsType } from "../app/app-reducer";
 
-// объединяя reducer-ы с помощью combineReducers,
-// мы задаём структуру нашего единственного объекта-состояния
+// unite reducers with help combineReducers,
+// create structure our app ones object single state-object
 const rootReducer = combineReducers({
     tasks: tasksReducer,
     todolists: todolistsReducer,
     app: appReducer
 })
-// непосредственно создаём store
+// create store
 export const store = createStore(rootReducer, applyMiddleware(thunk));
 
-// определить автоматически тип всего объекта состояния
+// detect automatically type all state-object
 export type AppRootStateType = ReturnType<typeof rootReducer>
 
-//типизаци actions
+//type actions
 type AppActionsType = TodolistsActionsType | TacksActionsType | AppReducerActionsType
-//типизаци dispatch
+//type dispatch
 type AppDispatchType = ThunkDispatch<AppRootStateType, any, AppActionsType>
 
-//типизированный hook useDispatch
+//type hook useDispatch
 export const useAppDispatch = () => useDispatch<AppDispatchType>()
 
-//типизированный hook useSelector
+//type hook useSelector
 export const useAppSelector: TypedUseSelectorHook<AppRootStateType> = useSelector
 
-// а это, чтобы можно было в консоли браузера обращаться к store в любой момент
+// so that you can access the store in the browser console at any time
 // @ts-ignore
 window.store = store;
