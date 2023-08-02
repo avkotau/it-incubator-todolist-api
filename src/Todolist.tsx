@@ -51,7 +51,6 @@ export const Todolist = React.memo(function (props: PropsType) {
     const onActiveClickHandler = useCallback(() => props.changeFilter('active', props.id), [props.id, props.changeFilter])
     const onCompletedClickHandler = useCallback(() => props.changeFilter('completed', props.id), [props.id, props.changeFilter])
 
-
     let tasksForTodolist = props.tasks
 
     if (props.filter === 'active') {
@@ -62,7 +61,7 @@ export const Todolist = React.memo(function (props: PropsType) {
     }
 
     return <div>
-        <h3><EditableSpan value={props.title} onChange={changeTodolistTitle}/>
+        <h3><EditableSpan value={props.title} onChange={changeTodolistTitle} disabled={props.emptyStatus === 'loading'}/>
             <IconButton disabled={props.emptyStatus === 'loading'} onClick={removeTodolist}>
                 <Delete/>
             </IconButton>
@@ -76,6 +75,7 @@ export const Todolist = React.memo(function (props: PropsType) {
                           removeTask={props.removeTask}
                           changeTaskTitle={props.changeTaskTitle}
                           changeTaskStatus={props.changeTaskStatus}
+                          emptyStatus={props.emptyStatus}
                     />)
             }
         </div>

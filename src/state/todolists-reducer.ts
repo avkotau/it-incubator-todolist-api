@@ -1,6 +1,7 @@
 import { todolistsAPI, TodolistType } from "../api/todolist-api";
 import { Dispatch } from "redux";
 import { RequestStatusType, setAppErrorAC, setAppStatusAC } from "../app/app-reducer";
+import { handleServerAppError, handleServerNetworkError } from "../utils/error-utils";
 
 const initialState: Array<TodolistDomainType> = [
     /*{id: todolistId1, title: 'What to learn', filter: 'all', addedDate: '', order: 0},
@@ -44,6 +45,9 @@ export const todolistsReducer = (state: Array<TodolistDomainType> = initialState
         case "CHANGE-TODOLIST-STATUS": {
             return state.map(tl => (tl.id === action.id ? {...tl, emptyStatus: action.status} : tl))
         }
+        // case "CHANGE-EDITABLE-SPAN": {
+        //     return state.map(tl => (tl.id === action.id ? {...tl, emptyStatus: action.status} : tl))
+        // }
 
         default:
             return state;
@@ -54,17 +58,27 @@ export const changeTodolistFilterAC = (id: string, filter: FilterValuesType): Ch
     return {type: 'CHANGE-TODOLIST-FILTER', id: id, filter: filter}
 }
 
+// const changeEditableSpanAC = (value: boolean) =>
+//     ({type: 'CHANGE-EDITABLE-SPAN', value} as const)
+
+
 export const changeTodolistTitleAC = (id: string, title: string): ChangeTodolistTitleActionType => {
     return {type: 'CHANGE-TODOLIST-TITLE', id: id, title: title}
 }
-
 
 export const updateTodolistTC = (id: string, title: string) => (dispatch: Dispatch) => {
     dispatch(setAppStatusAC('loading'))
     todolistsAPI.updateTodolist(id, title)
         .then(res => {
-            dispatch(changeTodolistTitleAC(id, title))
-            dispatch(setAppStatusAC('succeeded'))
+            if (res.data.resultCode === 0) {
+                dispatch(changeTodolistTitleAC(id, title))
+                dispatch(setAppStatusAC('succeeded'))
+            } else {
+                handleServerAppError(dispatch, res.data)
+            }
+        })
+        .catch(error => {
+            handleServerNetworkError(dispatch, error.message)
         })
 }
 
@@ -83,13 +97,16 @@ export const removeTodolistTC = (id: string) => (dispatch: Dispatch) => {
 
     todolistsAPI.deleteTodolist(id)
         .then(res => {
-            dispatch(removeTodolistAC(id))
-            dispatch(setAppStatusAC('succeeded'))
+            if (res.data.resultCode === 0) {
+                dispatch(removeTodolistAC(id))
+                dispatch(setAppStatusAC('succeeded'))
+            } else {
+                handleServerAppError(dispatch, res.data)
+            }
         })
-        .catch(e => {
+        .catch(error => {
             dispatch(changeTodolistStatusAC(id, 'idle'))
-            dispatch(setAppErrorAC(e.message))
-            dispatch(setAppStatusAC('failed'))
+            handleServerNetworkError(dispatch, error.message)
         })
 }
 export const addTodolistAC = (todolist: TodolistType): AddTodolistActionType => ({type: 'ADD-TODOLIST', todolist})
@@ -103,18 +120,12 @@ export const createTodolistTC = (title: string) => (dispatch: Dispatch) => {
                 dispatch(addTodolistAC(res.data.data.item))
                 dispatch(setAppStatusAC('succeeded'))
             } else {
-                if (res.data.messages.length) {
-                    dispatch(setAppErrorAC(res.data.messages[0]))
-                } else {
-                    dispatch(setAppErrorAC('Some error occurred'))
-                }
-                dispatch(setAppStatusAC('failed'))
+                handleServerAppError(dispatch, res.data)
             }
 
         })
-        .catch(e => {
-            dispatch(setAppErrorAC(e.message))
-            dispatch(setAppStatusAC('failed'))
+        .catch(error => {
+            handleServerNetworkError(dispatch, error.message)
         })
 }
 export const setTodolistsAC = (todolists: TodolistType[]): SetTodolistsActionType => ({
@@ -126,8 +137,7 @@ export const fetchTodolistsTC = () => (dispatch: Dispatch) => {
     dispatch(setAppStatusAC('loading'))
     todolistsAPI.getTodolists()
         .then(res => {
-            const action = setTodolistsAC(res.data)
-            dispatch(action)
+            dispatch(setTodolistsAC(res.data))
             dispatch(setAppStatusAC('succeeded'))
         })
 }

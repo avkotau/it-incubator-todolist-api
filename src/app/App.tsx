@@ -84,7 +84,7 @@ function App() {
 
     return (
         <div className="App">
-            <ErrorSnackbar/>
+
             <AppBar position="static">
                 <Toolbar>
                     <IconButton edge="start" color="inherit" aria-label="menu">
@@ -128,6 +128,7 @@ function App() {
                     }
                 </Grid>
             </Container>
+            <ErrorSnackbar/>
         </div>
     );
 }
