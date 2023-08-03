@@ -28,16 +28,11 @@ import { AppRootStateType, useAppDispatch } from '../state/store';
 import { TaskStatuses, TaskType } from "../api/todolist-api";
 import { ErrorSnackbar } from "../components/ErrorSnackbar/ErrorSnackbar";
 
-
-
-
 export type TasksStateType = {
     [key: string]: Array<TaskType>
 }
 
-
 function App() {
-
 
     const todolists = useSelector<AppRootStateType, Array<TodolistDomainType>>(state => state.todolists)
     const tasks = useSelector<AppRootStateType, TasksStateType>(state => state.tasks)

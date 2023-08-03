@@ -1,4 +1,5 @@
 import axios, { AxiosResponse } from 'axios'
+import { TaskDomainType } from "../state/tasks-reducer";
 
 const instance = axios.create({
     baseURL: 'https://social-network.samuraijs.com/api/1.1/',
@@ -67,7 +68,7 @@ export enum TaskPriorities {
     Later = 4
 }
 
-export type TaskType = {
+export type TaskType = TaskDomainType & {
     description: string
     title: string
     status: TaskStatuses
@@ -78,6 +79,7 @@ export type TaskType = {
     todoListId: string
     order: number
     addedDate: string
+
 }
 export type UpdateTaskModelType = {
     title: string
