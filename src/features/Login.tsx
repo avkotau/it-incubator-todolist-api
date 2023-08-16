@@ -8,13 +8,26 @@ import FormLabel from '@mui/material/FormLabel';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import { useFormik } from "formik";
+import { useAppDispatch, useAppSelector } from "../state/store";
+import { setIsLoggedInTC } from "../state/auth-reducer";
+import { Navigate } from "react-router-dom";
+
+type FormikErrorType = {
+    email?: string
+    password?: string
+    rememberMe?: boolean
+}
+
+export type FormType = {
+    email: string
+    password: string
+    rememberMe: boolean
+}
 
 export const Login = () => {
-    type FormikErrorType = {
-        email?: string
-        password?: string
-        rememberMe?: boolean
-    }
+    const dispatch = useAppDispatch();
+    const isLoggedIn = useAppSelector(state =>
+        state.auth.isLoggedIn)
 
     const formik = useFormik({
         initialValues: {
@@ -26,8 +39,6 @@ export const Login = () => {
         validate: (values) => {
             const errors: FormikErrorType = {}
 
-            console.log(`VALUES ${JSON.stringify(values, null, 2)}`)
-
             if (!values.email) {
                 errors.email = 'Required'
             } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(values.email)) {
@@ -38,24 +49,19 @@ export const Login = () => {
 
                 errors.password = 'Length should be more than 3 symbols'
             }
-
-            console.log(`ERROR ${JSON.stringify(errors, null, 2)}`)
             return errors
-
         },
         onSubmit: values => {
-
-            alert(JSON.stringify(values, null, 2));
+            dispatch(setIsLoggedInTC(values))
             formik.resetForm()
-            // alert(JSON.stringify(values, null, 2));
         },
     });
 
+    if (isLoggedIn) return <Navigate to={'/'}/>
 
     return <Grid container justifyContent={'center'}>
         <Grid item justifyContent={'center'}>
             <FormControl>
-
                 <FormLabel>
                     <p>To log in get registered
                         <a href={'https://social-network.samuraijs.com/'}
@@ -95,7 +101,6 @@ export const Login = () => {
                                                   checked={formik.values.rememberMe}
                                                   {...formik.getFieldProps('rememberMe')}/>
                                           }/>
-
                         <Button type={'submit'} variant={'contained'} color={'primary'}>
                             Login
                         </Button>
