@@ -1,5 +1,5 @@
 import {
-    AddTodolistActionType,
+    AddTodolistActionType, ClearTodosDataACType,
     RemoveTodolistActionType,
     SetTodolistsActionType
 } from './todolists-reducer';
@@ -16,54 +16,6 @@ import { AppRootStateType } from "./store";
 import { RequestStatusType, setAppStatusAC } from "../app/app-reducer";
 import { handleServerAppError, handleServerNetworkError } from "../utils/error-utils";
 import axios, { AxiosError } from "axios";
-
-export type RemoveTaskActionType = {
-    type: 'REMOVE-TASK',
-    todolistId: string
-    taskId: string
-}
-
-export type AddTaskActionType = {
-    type: 'ADD-TASK',
-    task: TaskType
-}
-
-export type SetTaskSActionType = {
-    type: 'SET-TASKS'
-    todolistId: string
-    tasks: TaskType[]
-}
-
-export type ChangeTaskStatusActionType = {
-    type: 'CHANGE-TASK-STATUS',
-    todolistId: string
-    taskId: string
-    status: TaskStatuses
-}
-
-export type ChangeTaskTitleActionType = {
-    type: 'CHANGE-TASK-TITLE',
-    todolistId: string
-    taskId: string
-    title: string
-}
-
-export type TacksActionsType = RemoveTaskActionType | AddTaskActionType
-    | ChangeTaskStatusActionType
-    | ChangeTaskTitleActionType
-    | AddTodolistActionType
-    | RemoveTodolistActionType
-    | SetTodolistsActionType
-    | SetTaskSActionType
-    | ReturnType<typeof changeEmptyTaskStatusAC>
-
-// export type TaskDomainType = TasksStateType & {
-//     emptyStatus: RequestStatusType
-// }
-
-export type TaskDomainType = {
-    emptyStatus: RequestStatusType
-}
 
 const initialState: TasksStateType = {
     /*"todolistId1": [
@@ -85,14 +37,11 @@ const initialState: TasksStateType = {
 }
 
 export const tasksReducer = (state: TasksStateType = initialState, action: TacksActionsType): TasksStateType => {
-
     switch (action.type) {
-
         case "SET-TASKS": {
             return {
                 ...state,
                 [action.todolistId]: action.tasks.map(t => ({...t, emptyStatus: "idle"}))
-
             }
         }
 
@@ -153,32 +102,25 @@ export const tasksReducer = (state: TasksStateType = initialState, action: Tacks
             return ({...state});
         }
 
+        case "CLEAR-DATA":
+            return {}
+
         default:
             return state;
     }
 }
 
 
-export const changeEmptyTaskStatusAC = (todolistId: string, taskId: string, status: RequestStatusType) => {
-    // console.log('changeEmptyTaskStatusAC', status)
-    return {type: 'CHANGE-EMPTY-TASK-STATUS', todolistId, taskId, status} as const
-}
+export const changeEmptyTaskStatusAC = (todolistId: string, taskId: string, status: RequestStatusType) => ({
+    type: 'CHANGE-EMPTY-TASK-STATUS', todolistId, taskId, status
+} as const)
 
 
-export const changeTaskTitleAC = (todolistId: string, taskId: string, title: string): ChangeTaskTitleActionType => {
-    return {type: 'CHANGE-TASK-TITLE', todolistId, taskId, title}
-}
+export const changeTaskTitleAC = (todolistId: string, taskId: string, title: string): ChangeTaskTitleActionType => ({
+    type: 'CHANGE-TASK-TITLE', todolistId, taskId, title
+} as const)
 
-type ErrorType = {
-    statusCode: number,
-    messages: [
-        {
-            message: string,
-            field: string
-        }
-    ],
-    error: string
-}
+
 export const updateTaskTitleTC = (todolistId: string, taskId: string, title: string) => (dispatch: Dispatch, getState: () => AppRootStateType) => {
     dispatch(changeEmptyTaskStatusAC(todolistId, taskId, 'loading'))
     const task: TaskType = getState().tasks[todolistId].find(t => t.id === taskId)!
@@ -204,45 +146,45 @@ export const updateTaskTitleTC = (todolistId: string, taskId: string, title: str
 
             //if true get message error sent by backend or internet error
             const error = e.response ? e.response?.data.messages[0].message : e.message
-            console.log('e', e.response?.data.messages[0])
             handleServerNetworkError(dispatch, error)
         })
 }
 
-export const changeTaskStatusAC = (taskId: string, status: TaskStatuses, todolistId: string): ChangeTaskStatusActionType => {
-    return {type: 'CHANGE-TASK-STATUS', status, todolistId, taskId}
-}
+export const changeTaskStatusAC = (taskId: string, status: TaskStatuses, todolistId: string):
+    ChangeTaskStatusActionType => ({
+    type: 'CHANGE-TASK-STATUS', status, todolistId, taskId
+} as const)
 
+export const updateTaskStatusTC = (todolistId: string, taskId: string, status: TaskStatuses) =>
+    (dispatch: Dispatch, getState: () => AppRootStateType) => {
+        dispatch(changeEmptyTaskStatusAC(todolistId, taskId, 'loading'))
+        dispatch(setAppStatusAC('loading'))
 
-export const updateTaskStatusTC = (todolistId: string, taskId: string, status: TaskStatuses) => (dispatch: Dispatch, getState: () => AppRootStateType) => {
-    dispatch(changeEmptyTaskStatusAC(todolistId, taskId, 'loading'))
-    dispatch(setAppStatusAC('loading'))
+        const task: TaskType = getState().tasks[todolistId].find(t => t.id === taskId)!
 
-    const task: TaskType = getState().tasks[todolistId].find(t => t.id === taskId)!
+        const model: UpdateTaskModelType = {
+            title: task.title,
+            description: task.description,
+            priority: task.priority,
+            startDate: task.startDate,
+            deadline: task.deadline,
+            status
+        }
 
-    const model: UpdateTaskModelType = {
-        title: task.title,
-        description: task.description,
-        priority: task.priority,
-        startDate: task.startDate,
-        deadline: task.deadline,
-        status
+        todolistsAPI.updateTask(todolistId, taskId, model)
+            .then(res => {
+                dispatch(changeTaskStatusAC(taskId, status, todolistId))
+                dispatch(setAppStatusAC('succeeded'))
+                dispatch(changeEmptyTaskStatusAC(todolistId, taskId, 'succeeded'))
+            })
+            .catch(e => {
+                handleServerNetworkError(dispatch, e.message)
+            })
     }
 
-    todolistsAPI.updateTask(todolistId, taskId, model)
-        .then(res => {
-            dispatch(changeTaskStatusAC(taskId, status, todolistId))
-            dispatch(setAppStatusAC('succeeded'))
-            dispatch(changeEmptyTaskStatusAC(todolistId, taskId, 'succeeded'))
-        })
-        .catch(e => {
-            handleServerNetworkError(dispatch, e.message)
-        })
-}
-
-export const addTaskAC = (task: TaskType): AddTaskActionType => {
-    return {type: 'ADD-TASK', task}
-}
+export const addTaskAC = (task: TaskType): AddTaskActionType => ({
+    type: 'ADD-TASK', task
+} as const)
 
 export const createTaskTC = (todolistId: string, title: string) => async (dispatch: Dispatch) => {
 
@@ -266,9 +208,9 @@ export const createTaskTC = (todolistId: string, title: string) => async (dispat
     }
 }
 
-export const removeTaskAC = (todolistId: string, taskId: string): RemoveTaskActionType => {
-    return {type: 'REMOVE-TASK', todolistId: todolistId, taskId: taskId}
-}
+export const removeTaskAC = (todolistId: string, taskId: string): RemoveTaskActionType => ({
+    type: 'REMOVE-TASK', todolistId: todolistId, taskId: taskId
+} as const)
 export const deleteTaskTC = (todolistId: string, taskId: string) => (dispatch: Dispatch) => {
     dispatch(changeEmptyTaskStatusAC(todolistId, taskId, 'loading'))
     dispatch(setAppStatusAC('loading'))
@@ -280,9 +222,9 @@ export const deleteTaskTC = (todolistId: string, taskId: string) => (dispatch: D
         })
 }
 
-export const setTaskAC = (todolistId: string, tasks: TaskType[]): SetTaskSActionType => {
-    return {type: 'SET-TASKS', todolistId, tasks}
-}
+export const setTaskAC = (todolistId: string, tasks: TaskType[]): SetTaskSActionType => ({
+    type: 'SET-TASKS', todolistId, tasks
+} as const)
 export const getTaskTC = (todolistId: string) => (dispatch: Dispatch) => {
 
     dispatch(setAppStatusAC('loading'))
@@ -292,3 +234,59 @@ export const getTaskTC = (todolistId: string) => (dispatch: Dispatch) => {
             dispatch(setAppStatusAC('succeeded'))
         })
 }
+
+type ErrorType = {
+    statusCode: number,
+    messages: [
+        {
+            message: string,
+            field: string
+        }
+    ],
+    error: string
+}
+
+export type RemoveTaskActionType = {
+    type: 'REMOVE-TASK',
+    todolistId: string
+    taskId: string
+}
+
+export type AddTaskActionType = {
+    type: 'ADD-TASK',
+    task: TaskType
+}
+
+export type SetTaskSActionType = {
+    type: 'SET-TASKS'
+    todolistId: string
+    tasks: TaskType[]
+}
+
+export type TaskDomainType = {
+    emptyStatus: RequestStatusType
+}
+
+export type ChangeTaskStatusActionType = {
+    type: 'CHANGE-TASK-STATUS',
+    todolistId: string
+    taskId: string
+    status: TaskStatuses
+}
+
+export type ChangeTaskTitleActionType = {
+    type: 'CHANGE-TASK-TITLE',
+    todolistId: string
+    taskId: string
+    title: string
+}
+
+export type TacksActionsType = RemoveTaskActionType | AddTaskActionType
+    | ChangeTaskStatusActionType
+    | ChangeTaskTitleActionType
+    | AddTodolistActionType
+    | RemoveTodolistActionType
+    | SetTodolistsActionType
+    | SetTaskSActionType
+    | ReturnType<typeof changeEmptyTaskStatusAC>
+    | ClearTodosDataACType

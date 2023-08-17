@@ -3,8 +3,7 @@ import { authAPI, Result_code } from "../api/todolist-api";
 import { SetAppErrorACType, setAppStatusAC, SetAppStatusACType } from "../app/app-reducer";
 import { handleServerAppError, handleServerNetworkError } from "../utils/error-utils";
 import { FormType } from "../features/Login";
-
-type ActionsType = ReturnType<typeof setIsLoggedInAC> | SetAppStatusACType | SetAppErrorACType
+import { clearTodosDataAC, ClearTodosDataACType } from "./todolists-reducer";
 
 const initialState = {
     isLoggedIn: false
@@ -12,7 +11,6 @@ const initialState = {
 type InitialStateType = typeof initialState
 
 export const authReducer = (state: InitialStateType = initialState, action: ActionsType) => {
-
     switch (action.type) {
         case "login/SET-IS-LOGGED-IN":
             return {...state, isLoggedIn: action.value}
@@ -46,11 +44,14 @@ export const logoutTC = () => async (dispatch: Dispatch<ActionsType>) => {
         if (res.data.resultCode === Result_code.SUCCESS) {
             dispatch(setIsLoggedInAC(false))
             dispatch(setAppStatusAC('succeeded'))
+            dispatch(clearTodosDataAC())
         } else {
             handleServerAppError(dispatch, res.data)
         }
 
     } catch (e) {
-        handleServerNetworkError(dispatch, e as string)
+        handleServerNetworkError(dispatch, (e as string))
     }
 }
+
+type ActionsType = ReturnType<typeof setIsLoggedInAC> | SetAppStatusACType | SetAppErrorACType | ClearTodosDataACType

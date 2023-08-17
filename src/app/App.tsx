@@ -25,7 +25,7 @@ export type TasksStateType = {
 function App() {
     const status = useAppSelector<RequestStatusType>(state => state.app.status)
     const dispatch = useAppDispatch();
-    const isLoggedIn = useAppSelector(state =>
+    const isLoggedIn = useAppSelector<boolean>(state =>
         state.auth.isLoggedIn)
 
     const isInitialized = useAppSelector(state => state.app.isInitialized)
@@ -56,7 +56,7 @@ function App() {
                     <Typography variant="h6">
                         News
                     </Typography>
-                    {isLoggedIn && <Button color="inherit" onClick={logoutHandler}>Logout</Button>}
+                    {isLoggedIn && <Button color="inherit" onClick={logoutHandler}>Log out</Button>}
                 </Toolbar>
             </AppBar>
             {status === 'loading' && <LinearProgress/>}
